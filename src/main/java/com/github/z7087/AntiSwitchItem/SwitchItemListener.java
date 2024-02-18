@@ -1,13 +1,14 @@
 package com.github.z7087.AntiSwitchItem;
 
+import com.github.z7087.AntiSwitchItem.utils.ServerVersion;
+import com.github.z7087.AntiSwitchItem.utils.SpigotReflectionUtil;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftHumanEntity;
-
-import net.minecraft.server.v1_8_R3.EntityHuman;
+import java.lang.reflect.InvocationTargetException;
 
 
 public class SwitchItemListener implements Listener {
@@ -15,9 +16,17 @@ public class SwitchItemListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onItemHeldEvent(PlayerItemHeldEvent event) {
         if (event.getPreviousSlot() != event.getNewSlot()) {
-            EntityHuman playerNMS = ((CraftHumanEntity)event.getPlayer()).getHandle();
-            if (playerNMS.bS()) {
-                playerNMS.bV();
+            try {
+                Object entityPlayer = SpigotReflectionUtil.getEntityPlayer(event.getPlayer());
+                if ((boolean)(SpigotReflectionUtil.IS_USING_ITEM.invoke(entityPlayer))) {
+                    if (SpigotReflectionUtil.Version.isNewerThanOrEquals(ServerVersion.V_1_9) && SpigotReflectionUtil.GET_ACTIVE_HAND.invoke(entityPlayer) != SpigotReflectionUtil.MAIN_HAND)
+                        return;
+                    SpigotReflectionUtil.CLEAR_ACTIVE_HAND.invoke(entityPlayer);
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
             }
         }
     }
