@@ -7,15 +7,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 
 public class AntiSwitchItem extends JavaPlugin {
+    protected boolean state = false;
 
     @Override
     public void onLoad() {
-        SpigotReflectionUtil.init();
+        final Class<?> loadUtil = (new SpigotReflectionUtil()).getClass();
+        state = true;
     }
 
     @Override
     public void onEnable() {
-        Bukkit.getPluginManager().registerEvents(new SwitchItemListener(), this);
+        if (state)
+            Bukkit.getPluginManager().registerEvents(new SwitchItemListener(), this);
     }
 
     @Override

@@ -15,40 +15,73 @@ public class SpigotReflectionUtil {
 
     public static final ServerVersion Version = ServerVersion.fromNMSVersion(MODIFIED_PACKAGE_NAME);
 
-    public static Class<?> ENTITY_PLAYER_CLASS, ENTITY_HUMAN_CLASS, ENTITY_LIVING_CLASS, CRAFT_PLAYER_CLASS, CRAFT_HUMAN_CLASS, CRAFT_LIVING_CLASS;
+    public static final Class<?> ENTITY_PLAYER_CLASS, ENTITY_HUMAN_CLASS, ENTITY_LIVING_CLASS, CRAFT_PLAYER_CLASS, CRAFT_HUMAN_CLASS, CRAFT_LIVING_CLASS;
 
-    public static Method GET_CRAFT_PLAYER_HANDLE_METHOD, IS_USING_ITEM, GET_ACTIVE_HAND, CLEAR_ACTIVE_HAND;
+    public static final Method GET_CRAFT_PLAYER_HANDLE_METHOD, IS_USING_ITEM, GET_ACTIVE_HAND, CLEAR_ACTIVE_HAND;
 
-    public static Object MAIN_HAND, OFF_HAND;
+    public static final Object MAIN_HAND, OFF_HAND;
 
-    public static boolean needInitClass = true, needInitMethod = true, needInitField = true;
+    public static final Object[] EMPTY = new Object[0];
+    public static final Class[] EMPTYC = new Class[0];
 
-    public static void init() {
-        if (isSupportVersion()) {
-            if (needInitClass)
-                initClass();
-            needInitClass = false;
-            if (needInitMethod)
-                initMethod();
-            needInitMethod = false;
-            if (needInitField)
-                initField();
-            needInitField = false;
-        } else {
-            throw new RuntimeException("This server already patched SwitchItem!");
+    public static Class<?> getNMSClass(final String name) {
+        try {
+            return Class.forName(LEGACY_NMS_PACKAGE + name);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
-    private static void initClass() {
+    public static Class<?> getOBCClass(final String name) {
+        try {
+            return Class.forName(OBC_PACKAGE + name);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Method getMethod(final Class<?> clazz, final String methodName) {
+        try {
+            final Method m = clazz.getDeclaredMethod(methodName, EMPTYC);
+            m.setAccessible(true);
+            return m;
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static boolean isNotSupportVersion() {
+        return Version.isNotSupport();
+    }
+
+    public static Object getCraftPlayer(final Player player) {
+        return CRAFT_PLAYER_CLASS.cast(player);
+    }
+
+    public static Object getEntityPlayer(final Player player) {
+        final Object craftPlayer = getCraftPlayer(player);
+        try {
+            return GET_CRAFT_PLAYER_HANDLE_METHOD.invoke(craftPlayer, EMPTY);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    static {
+        if (isNotSupportVersion())
+            throw new RuntimeException("This server already patched SwitchItem!");
+
         ENTITY_PLAYER_CLASS = getNMSClass("EntityPlayer");
         CRAFT_PLAYER_CLASS = getOBCClass("entity.CraftPlayer");
         ENTITY_HUMAN_CLASS = getNMSClass("EntityHuman");
         CRAFT_HUMAN_CLASS = getOBCClass("entity.CraftHumanEntity");
         ENTITY_LIVING_CLASS = getNMSClass("EntityLiving");
         CRAFT_LIVING_CLASS = getOBCClass("entity.CraftLivingEntity");
-    }
 
-    private static void initMethod() {
         GET_CRAFT_PLAYER_HANDLE_METHOD = getMethod(CRAFT_PLAYER_CLASS, "getHandle");
         switch (Version) {
             case V_1_7_10:
@@ -115,64 +148,21 @@ public class SpigotReflectionUtil {
                 IS_USING_ITEM = getMethod(ENTITY_LIVING_CLASS, "isHandRaised");
                 GET_ACTIVE_HAND = getMethod(ENTITY_LIVING_CLASS, "getRaisedHand");
                 CLEAR_ACTIVE_HAND = getMethod(ENTITY_LIVING_CLASS, "dH");
-        }
-    }
+                break;
 
-    private static void initField() {
+            default:
+                throw new RuntimeException("How possible here...");
+        }
+
         if (Version.isNewerThanOrEquals(ServerVersion.V_1_9)) {
             final Class<?> ENUM_HAND_CLASS = getNMSClass("EnumHand");
-            Object[] enum_hands = ENUM_HAND_CLASS.getEnumConstants();
+            final Object[] enum_hands = ENUM_HAND_CLASS.getEnumConstants();
             MAIN_HAND = enum_hands[0];
             OFF_HAND = enum_hands[1];
+        } else {
+            MAIN_HAND = null;
+            OFF_HAND = null;
         }
-    }
-
-    public static Class<?> getNMSClass(final String name) {
-        try {
-            return Class.forName(LEGACY_NMS_PACKAGE + name);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public static Class<?> getOBCClass(final String name) {
-        try {
-            return Class.forName(OBC_PACKAGE + name);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public static Method getMethod(final Class<?> clazz, final String methodName) {
-        Method m;
-        try {
-            m = clazz.getDeclaredMethod(methodName);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-            return null;
-        }
-        m.setAccessible(true);
-        return m;
-    }
-
-    public static boolean isSupportVersion() {
-        return Version.isSupport();
-    }
-
-    public static Object getCraftPlayer(Player player) {
-        return CRAFT_PLAYER_CLASS.cast(player);
-    }
-
-    public static Object getEntityPlayer(Player player) {
-        Object craftPlayer = getCraftPlayer(player);
-        try {
-            return GET_CRAFT_PLAYER_HANDLE_METHOD.invoke(craftPlayer);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
 }
