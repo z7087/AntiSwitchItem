@@ -43,8 +43,12 @@ public class SpigotReflectionUtil {
     }
 
     public static Method getMethod(final Class<?> clazz, final String methodName) {
+        return getMethod(clazz, methodName, EMPTYC);
+    }
+
+    public static Method getMethod(final Class<?> clazz, final String methodName, final Class<?>... parameterTypes) {
         try {
-            final Method m = clazz.getDeclaredMethod(methodName, EMPTYC);
+            final Method m = clazz.getDeclaredMethod(methodName, parameterTypes);
             m.setAccessible(true);
             return m;
         } catch (NoSuchMethodException e) {
