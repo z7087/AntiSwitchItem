@@ -18,7 +18,7 @@ public class SwitchItemListener implements Listener {
             try {
                 Object entityPlayer = SpigotReflectionUtil.getEntityPlayer(event.getPlayer());
                 if ((boolean)(SpigotReflectionUtil.IS_USING_ITEM.invoke(entityPlayer, SpigotReflectionUtil.EMPTY))) {
-                    if (SpigotReflectionUtil.Version.isNewerThanOrEquals(ServerVersion.V_1_9) && SpigotReflectionUtil.GET_ACTIVE_HAND.invoke(entityPlayer, SpigotReflectionUtil.EMPTY) != SpigotReflectionUtil.MAIN_HAND)
+                    if (SpigotReflectionUtil.hasOffHand && SpigotReflectionUtil.GET_ACTIVE_HAND.invoke(entityPlayer, SpigotReflectionUtil.EMPTY) != SpigotReflectionUtil.MAIN_HAND)
                         return;
                     SpigotReflectionUtil.CLEAR_ACTIVE_HAND.invoke(entityPlayer, SpigotReflectionUtil.EMPTY);
                 }
