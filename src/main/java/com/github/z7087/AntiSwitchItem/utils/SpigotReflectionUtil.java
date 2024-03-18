@@ -19,6 +19,7 @@ public class SpigotReflectionUtil {
 
     public static final Method GET_CRAFT_PLAYER_HANDLE_METHOD, IS_USING_ITEM, GET_ACTIVE_HAND, CLEAR_ACTIVE_HAND;
 
+    public static final boolean hasOffHand;
     public static final Object MAIN_HAND, OFF_HAND;
 
     public static final Object[] EMPTY = new Object[0];
@@ -159,11 +160,13 @@ public class SpigotReflectionUtil {
         }
 
         if (Version.isNewerThanOrEquals(ServerVersion.V_1_9)) {
+            hasOffHand = true;
             final Class<?> ENUM_HAND_CLASS = getNMSClass("EnumHand");
             final Object[] enum_hands = ENUM_HAND_CLASS.getEnumConstants();
             MAIN_HAND = enum_hands[0];
             OFF_HAND = enum_hands[1];
         } else {
+            hasOffHand = false;
             MAIN_HAND = null;
             OFF_HAND = null;
         }
